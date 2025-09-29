@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import com.github.cliftonlabs.json_simple.*;
+
+
 
 public class RegistrationDAO {
     
@@ -28,6 +31,13 @@ public class RegistrationDAO {
             if (conn.isValid(0)) {
                 
                 // INSERT YOUR CODE HERE
+                String sql = "INSERT INTO registration (studentid, termid, crn) VALUES (?, ?, ?)";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, studentid);
+                ps.setInt(2, termid);
+                ps.setInt(3, crn);
+            
+                result = ps.executeUpdate() > 0;
                 
             }
             
@@ -59,7 +69,13 @@ public class RegistrationDAO {
             if (conn.isValid(0)) {
                 
                 // INSERT YOUR CODE HERE
+                String sql = "DELETE FROM registration WHERE studentid = ? AND termid = ? AND crn = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, studentid);
+                ps.setInt(2, termid);
+                ps.setInt(3, crn);
                 
+                result = ps.executeUpdate() > 0;
             }
             
         }
@@ -89,6 +105,13 @@ public class RegistrationDAO {
             if (conn.isValid(0)) {
                 
                 // INSERT YOUR CODE HERE
+                String sql = "DELETE FROM registration WHERE studentid = ? AND termid = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, studentid);
+                ps.setInt(2, termid);
+                
+                result = ps.executeUpdate() > 0;
+                
                 
             }
             
@@ -120,12 +143,27 @@ public class RegistrationDAO {
             
             if (conn.isValid(0)) {
                 
-                // INSERT YOUR CODE HERE
-                
+                String sql = "SELECT * FROM registration WHERE studentid = ? AND termid = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, studentid);
+                ps.setInt(2, termid);
+                rs = ps.executeQuery();
+                JsonArray resultArray = new JsonArray();
+
+                   while (rs.next()) {
+                    JsonObject obj = new JsonObject();
+                    obj.put("studentid", rs.getInt("studentid"));
+                    obj.put("termid", rs.getInt("termid"));
+                    obj.put("crn", rs.getInt("crn")); // include CRN if needed
+                    resultArray.add(obj);
+                    }
+
+                result = resultArray.toJson(); // ensure valid JSON
             }
-            
         }
         
+        }      
+        }
         catch (Exception e) { e.printStackTrace(); }
         
         finally {
