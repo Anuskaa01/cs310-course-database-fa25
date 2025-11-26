@@ -18,7 +18,7 @@ public class DAOUtility {
 
                 // INSERT YOUR CODE HERE
                 ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
+                int columnCount = metaData.getColumnCount();
 
             while (rs.next()) {
                 JsonObject row = new JsonObject();

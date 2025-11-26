@@ -1,9 +1,9 @@
 package edu.jsu.mcis.cs310.coursedb.dao;
-
+import com.github.cliftonlabs.json_simple.*;
+import java.sql.ResultSetMetaData;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 
 public class SectionDAO {
     
@@ -22,6 +22,7 @@ public class SectionDAO {
         PreparedStatement ps = null;
         ResultSet rs = null;
         ResultSetMetaData rsmd = null;
+        JsonArray jsonArray = new JsonArray();
         
         try {
             
@@ -36,11 +37,20 @@ public class SectionDAO {
                 ps.setString(2, subjectid);
                 ps.setString(3, num);
                         
-                //Execution
-                rs = ps.executeQuery();
-                
-                
-                result = DAOUtility.getResultSetAsJson(rs);
+                Boolean gotResult = ps.execute();
+                if(gotResult) {
+                    rs = ps.getResultSet();
+
+                    while(rs.next()) {
+                        JsonObject jsonFormat = new JsonObject();
+                        jsonFormat.put("termid", rs.getInt("termid"));
+                        jsonFormat.put("subjectid", rs.getString("subjectid"));
+                        jsonFormat.put("num", rs.getString("num"));
+                        jsonArray.add(jsonFormat);
+                        result = jsonArray.toString();
+                }
+            
+                }
                       
                 
             }

@@ -4,14 +4,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 import com.github.cliftonlabs.json_simple.*;
 
 
 
 public class RegistrationDAO {
     
-    private final DAOFactory daoFactory;
+    private final DAOFactory daoFactory;   
+    private final String QUERYINSERT = "INSERT INTO registration (studentid, termid, crn) VALUES (?, ?, ?)";
+    private final String QUERYDELETE = "DELETE FROM registration WHERE studentid = ? AND termid = ? AND crn = ?";
+    private final String QUERYDELETEALL = "DELETE FROM registration WHERE termid = ? AND studentid = ?";    
+    private final String QUERYSELECT = "SELECT * FROM registration WHERE studentid = ? AND termid = ? ORDER BY crn";
     
     RegistrationDAO(DAOFactory daoFactory) {
         this.daoFactory = daoFactory;
@@ -31,13 +34,15 @@ public class RegistrationDAO {
             if (conn.isValid(0)) {
                 
                 // INSERT YOUR CODE HERE
-                String sql = "INSERT INTO registration (studentid, termid, crn) VALUES (?, ?, ?)";
-                ps = conn.prepareStatement(sql);
+                ps = conn.prepareStatement(QUERYINSERT);
                 ps.setInt(1, studentid);
                 ps.setInt(2, termid);
                 ps.setInt(3, crn);
-            
-                result = ps.executeUpdate() > 0;
+
+                //executing the update
+                int rowsAffected = ps.executeUpdate();
+                
+                result = (rowsAffected > 0);
                 
             }
             
@@ -69,13 +74,15 @@ public class RegistrationDAO {
             if (conn.isValid(0)) {
                 
                 // INSERT YOUR CODE HERE
-                String sql = "DELETE FROM registration WHERE studentid = ? AND termid = ? AND crn = ?";
-                ps = conn.prepareStatement(sql);
+                 ps = conn.prepareStatement(QUERYDELETE);
                 ps.setInt(1, studentid);
                 ps.setInt(2, termid);
                 ps.setInt(3, crn);
+
+                //execute the update
+                int rowsAffected = ps.executeUpdate();
                 
-                result = ps.executeUpdate() > 0;
+                result = (rowsAffected > 0);
             }
             
         }
@@ -105,12 +112,13 @@ public class RegistrationDAO {
             if (conn.isValid(0)) {
                 
                 // INSERT YOUR CODE HERE
-                String sql = "DELETE FROM registration WHERE studentid = ? AND termid = ?";
-                ps = conn.prepareStatement(sql);
+                ps = conn.prepareStatement(QUERYDELETEALL);
                 ps.setInt(1, studentid);
                 ps.setInt(2, termid);
                 
-                result = ps.executeUpdate() > 0;
+                int rowsAffected = ps.executeUpdate();
+                
+                result = (rowsAffected > 0);
                 
                 
             }
@@ -138,43 +146,40 @@ public class RegistrationDAO {
         ResultSetMetaData rsmd = null;
         
         try {
-            
-            Connection conn = daoFactory.getConnection();
-            
+            Connection conn = daoFactory.getConnection(); 
             if (conn.isValid(0)) {
-                
-                String sql = "SELECT * FROM registration WHERE studentid = ? AND termid = ?";
-                ps = conn.prepareStatement(sql);
+                //prepare statement
+                ps = conn.prepareStatement(QUERYSELECT);
                 ps.setInt(1, studentid);
                 ps.setInt(2, termid);
-                rs = ps.executeQuery();
-                JsonArray resultArray = new JsonArray();
-
-                   while (rs.next()) {
-                    JsonObject obj = new JsonObject();
-                    obj.put("studentid", rs.getInt("studentid"));
-                    obj.put("termid", rs.getInt("termid"));
-                    obj.put("crn", rs.getInt("crn")); // include CRN if needed
-                    resultArray.add(obj);
+                Boolean gotResult = ps.execute();
+                
+                if(gotResult){
+                    rs = ps.getResultSet();
+                    JsonArray resultArray = new JsonArray();
+                    JsonObject stuID = new JsonObject();
+                    JsonObject termID = new JsonObject();     
+                    while(rs.next()){
+                        stuID.put("studentid", rs.getInt(studentid));
+                        termID.put("termid", rs.getInt(termid));
+                        resultArray.add(stuID);
+                        resultArray.add(termID);
+                        result = resultArray.toString();
                     }
-
-                result = resultArray.toJson(); // ensure valid JSON
-            }
+                }
+            }      
         }
         
-        }      
-        }
         catch (Exception e) { e.printStackTrace(); }
         
         finally {
             
             if (rs != null) { try { rs.close(); } catch (Exception e) { e.printStackTrace(); } }
-            if (ps != null) { try { ps.close(); } catch (Exception e) { e.printStackTrace(); } }
+            
             
         }
         
         return result;
         
     }
-    
 }
